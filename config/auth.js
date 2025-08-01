@@ -14,4 +14,4 @@ function validateAuthHeader(authHeader) {
   return authHeader.trim() === validHash;
 }
 
-module.exports = { validateAuthHeader }; // ✅ MUST BE THIS
+module.exports = { validateAuthHeader };
