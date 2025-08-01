@@ -3,8 +3,19 @@ const sequelize = require('../config/db');
 
 const Data = sequelize.define('Data', {
   payload: {
-    type: DataTypes.JSON,
+    type: DataTypes.TEXT, // ✅ change from JSON to TEXT
     allowNull: false,
+    get() {
+      const rawValue = this.getDataValue('payload');
+      try {
+        return JSON.parse(rawValue);
+      } catch (err) {
+        return rawValue;
+      }
+    },
+    set(value) {
+      this.setDataValue('payload', JSON.stringify(value));
+    }
   },
   createdAt: {
     type: DataTypes.DATE,
