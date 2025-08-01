@@ -3,7 +3,7 @@ const sequelize = require('../config/db');
 
 const Data = sequelize.define('Data', {
   payload: {
-    type: DataTypes.TEXT, // ✅ change from JSON to TEXT
+    type: DataTypes.TEXT,
     allowNull: false,
     get() {
       const rawValue = this.getDataValue('payload');
