@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const Data = require('../models/Data');
 const { validateAuthHeader } = require('../config/auth');
+const { decryptGCM } = require('../utils/encryption');
 
 router.post('/', async (req, res) => {
   const authHeader = req.headers['authorization'];
@@ -11,18 +12,29 @@ router.post('/', async (req, res) => {
   }
 
   try {
-    const payload = req.body;
+    const encryptedPayload = req.body;
 
-    if (!payload || typeof payload !== 'object') {
-      return res.status(400).json({ message: 'Invalid JSON payload' });
+    // Validate expected encrypted fields
+    const { iv, authTag, content } = encryptedPayload;
+
+    if (!iv || !authTag || !content) {
+      return res.status(400).json({ message: 'Missing iv, authTag, or content in body' });
     }
 
-    const dataEntry = await Data.create({ payload });
+    // Decrypt the payload sent from client
+    const decryptedPayload = decryptGCM(encryptedPayload);
 
-    res.status(201).json({ message: 'Data saved to MySQL', id: dataEntry.id });
+    // Store decrypted JSON in DB
+    const dataEntry = await Data.create({ payload: decryptedPayload });
+
+    res.status(201).json({
+      message: 'Encrypted data received, decrypted, and saved to DB',
+      id: dataEntry.id
+    });
+
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: 'Server error' });
+    console.error('Decryption or DB error:', err);
+    res.status(500).json({ message: 'Server error during decryption or saving' });
   }
 });
 
