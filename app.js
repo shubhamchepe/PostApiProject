@@ -14,6 +14,7 @@ const app = express();
 
 
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 
 app.get('/', (req, res) => {
@@ -29,6 +30,7 @@ app.use('/api/whatsapp', whatsappRoutes);
 app.post('/webhook', async (req, res) => {
   console.log('Webhook hit');
   console.log('Incoming Body:', req.body);
+   console.log('RAW Webhook Data:', JSON.stringify(req.body, null, 2));
 
   const from = req.body.From?.replace('whatsapp:', '');
   const body = req.body.Body;
