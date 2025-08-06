@@ -4,6 +4,8 @@ dotenv.config();
 
 const postRoute = require('./routes/postRoute');
 const sequelize = require('./config/db');
+const whatsappRoutes = require('./routes/whatsapp');
+const Message = require('./models/Message');
 
 
 const PORT = process.env.PORT || 3000;
@@ -20,6 +22,28 @@ app.get('/', (req, res) => {
 
 
 app.use('/api/post', postRoute);
+
+app.use('/api/whatsapp', whatsappRoutes);
+
+// Webhook to receive user replies from Twilio
+app.post('/webhook', async (req, res) => {
+  const from = req.body.From?.replace('whatsapp:', '');
+  const body = req.body.Body;
+
+  if (!from || !body) return res.sendStatus(400);
+
+  try {
+    await Message.create({
+      phone_number: from,
+      direction: 'received',
+      message: body,
+    });
+    res.sendStatus(200);
+  } catch (err) {
+    console.error('Webhook error:', err);
+    res.sendStatus(500);
+  }
+});
 
 
 const startServer = async () => {
