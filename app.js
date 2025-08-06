@@ -27,10 +27,16 @@ app.use('/api/whatsapp', whatsappRoutes);
 
 // Webhook to receive user replies from Twilio
 app.post('/webhook', async (req, res) => {
+  console.log('Webhook hit');
+  console.log('Incoming Body:', req.body);
+
   const from = req.body.From?.replace('whatsapp:', '');
   const body = req.body.Body;
 
-  if (!from || !body) return res.sendStatus(400);
+  if (!from || !body) {
+    console.log('Missing data');
+    return res.sendStatus(400);
+  }
 
   try {
     await Message.create({
@@ -38,12 +44,15 @@ app.post('/webhook', async (req, res) => {
       direction: 'received',
       message: body,
     });
+
+    console.log('Message saved');
     res.sendStatus(200);
   } catch (err) {
-    console.error('Webhook error:', err);
+    console.error('DB error:', err);
     res.sendStatus(500);
   }
 });
+
 
 
 const startServer = async () => {
